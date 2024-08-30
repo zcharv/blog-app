@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { color-scheme: light; }
+body { width: 40rem; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+ul {
+  list-style-type: none; /* Remove bullets */
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margins */
+}
+li {
+  margin: 5px;
+}
+.card {
+  padding: 5px;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0, 0.9);
+  transition: 0.3s;
+  border-radius: 5px; /* 5px rounded corners */
+}
+</style>
+</head>
+<body>
+<h3 id='blog_title'>
+	Welcome to 
+	<script>
+	var blogId = "88493e1f-a4b5-4ddf-aabf-4a50b64cbd09"
+	var url = "http://3.217.99.168:5000/getBlog/" + blogId;
+        fetch(url)
+                .then((response) => {
+                        return response.json();
+                })
+                .then((data) => {
+			let title = document.createElement("h1")
+			title.innerText = data.name + "!"
+                        document.getElementById("blog_title").append(title)
+			listEntries(blogId)
+                })
+                .catch((error) => {
+                        console.log(error);
+                });
+	</script>
+</h3>
+
+<form id="createForm" style="margin-bottom: 25px">
+  <label for="title">Title:</label><br>
+  <input type="text" id="title" name="title" value="" style="width: 15rem"><br>
+  <label for="content">Content:</label><br>
+  <textarea id="content" name="content" value="" style="width: 25rem"></textarea><br>
+  <label for="tagId">Tag:</label><br>
+  <select id="tagId" name="tagId">
+	  <script>
+     		var url = "http://3.217.99.168:5000/listTags";
+        	fetch(url)
+                .then((response) => {
+                        return response.json();
+                })
+                .then((data) => {
+			data.forEach((tag) => {
+				let option = document.createElement("option")
+				option.value = tag.id
+				option.innerText = tag.name
+				document.getElementById("tagId").appendChild(option)
+			})
+                })
+                .catch((error) => {
+                        console.log(error);
+                });
+	  </script>
+  </select>
+  <br><br><input type="submit" value="Post">
+</form> 
+
+<script>
+
+function createEntry(event) {
+	event.preventDefault()
+	data = new FormData(event.target)
+	allData = [...data.entries()]
+	out = {"blogId": "88493e1f-a4b5-4ddf-aabf-4a50b64cbd09"}
+	allData.map((input) => out[input[0]]=input[1])
+
+	var url = "http://3.217.99.168:5000/createEntry";
+	fetch(url, {
+  		method: "POST",
+  		body: JSON.stringify(out),
+  		headers: {
+    			"Content-type": "application/json; charset=UTF-8"
+  		}
+	})
+  .then(() => listEntries())
+  .catch((error) => {console.log(error)})
+}
+
+const form = document.getElementById("createForm");
+form.addEventListener("submit", createEntry);
+
+
+</script>
+
+<div id="entriesContainer">
+
+<ul id='entries'>
+
+<script>
+	function listEntries(blogId) {
+	var url = "http://3.217.99.168:5000/listEntries?" + blogId;
+	fetch(url)
+    		.then((response) => {
+      			return response.json();
+    		})
+    		.then((data) => {
+			data.sort(function(a,b){
+  				return new Date(b.created) - new Date(a.created);
+				});
+
+				let empty =  document.createElement("ul")
+                                document.getElementById("entries").remove()
+                                empty.id = "entries"
+				document.getElementById("entriesContainer").appendChild(empty)
+
+			data.forEach(entry => {
+				let card = document.createElement("div")
+				card.className = "card"
+				let container = document.createElement("div")
+				container.className = "container"
+				let li = document.createElement("li")
+				let title = document.createElement("h2")
+				title.innerText = entry.title
+				let deleteBtn = document.createElement("button")
+				deleteBtn.id = entry.id
+				deleteBtn.innerText = "Delete"
+				let content = document.createElement("p")
+				content.innerText = entry.content
+
+				container.appendChild(title)
+				container.appendChild(content)
+
+				card.appendChild(container)
+				li.appendChild(card)
+                    		document.getElementById("entries").appendChild(li);
+			})
+		})
+		.catch((error) => {
+      			console.log(error);
+    		});
+	}
+
+
+
+
+</script>
+</ul>
+</div>
+
+</body>
+</html>
